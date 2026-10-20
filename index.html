@@ -53,7 +53,7 @@ input[type=range]{width:100%;height:30px;accent-color:var(--ac)}
 input:disabled{opacity:.55}
 .tg{display:flex;flex-wrap:wrap;gap:12px 20px}.tg label{display:flex;gap:6px;align-items:center}
 select{font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:4px 6px}
-#chs{width:100%;margin-top:8px}
+#chs,#selc,#sell{width:100%}.gf{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.gf[hidden]{display:none}.gf label{display:grid;gap:2px;font-size:12px;color:var(--mu)}input[type=number]{font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;width:100%}#chs{margin-top:8px}
 ul{list-style:none;margin:8px 0 0;padding:0}
 li{display:flex;gap:8px;padding:3px 0;font-size:14px}
 li::before{content:"✓";color:var(--ok);font-weight:700;flex:none;width:14px}
@@ -86,6 +86,12 @@ li.x::before{content:"!";color:var(--wn)}li.u::before{content:"○";color:var(--
 <div class="b2"><button class="bt p" id="shot">📷 Take shot</button><button class="bt" id="live" title="Live camera" aria-label="Live camera">📹</button><button class="bt" id="flip" title="Switch camera" aria-label="Switch camera">🔄</button><button class="bt" id="gal" title="Photo from gallery" aria-label="Photo from gallery">🖼️</button></div>
 </div></section>
 <section>
+<div class="cd"><b>Your camera and lens</b><p class="hint">Pick the gear you shoot with. The live view then shows its framing, blur, noise and limits, so you can check a scene before you shoot with your own camera.</p>
+<label class="h" for="selc">Camera body</label><select id="selc"></select>
+<div class="gf" id="ccf" hidden><label>Sensor<select id="gcs"><option value="1">Full frame</option><option value="1.5">APS-C 1.5×</option><option value="1.6">APS-C Canon 1.6×</option><option value="2">Micro Four Thirds</option><option value="2.7">1-inch</option><option value=".79">Medium format</option></select></label><label>Max ISO<input id="gci" type="number" inputmode="numeric" value="25600"></label><label>Fastest shutter 1/<select id="gcf"><option>2000</option><option>4000</option><option selected>8000</option><option>16000</option><option>32000</option></select></label><label>Body stabilization (stops)<input id="gcb" type="number" inputmode="decimal" step=".5" value="0"></label></div>
+<label class="h" for="sell">Lens</label><select id="sell"></select>
+<div class="gf" id="lcf" hidden><label>Shortest focal length (mm)<input id="gl1" type="number" inputmode="numeric" value="24"></label><label>Longest focal length (mm)<input id="gl2" type="number" inputmode="numeric" value="70"></label><label>Widest f/ at short end<input id="gn1" type="number" inputmode="decimal" step=".1" value="2.8"></label><label>Widest f/ at long end<input id="gn2" type="number" inputmode="decimal" step=".1" value="2.8"></label><label>Lens stabilization (stops)<input id="gis" type="number" inputmode="decimal" step=".5" value="0"></label></div>
+<p class="hint" id="gsum"></p><p class="hint" id="gnt"></p></div>
 <div class="cd"><div class="md" id="md"></div><ul id="tp"></ul><button class="bt" id="hn" hidden></button></div>
 <div class="cd"><b>Lighting</b><div class="md" id="lt"></div><p class="hint" id="ltd"></p></div>
 <div class="cd"><div class="md" id="em"></div><p class="hint" id="emd"></p></div>
@@ -101,32 +107,314 @@ li.x::before{content:"!";color:var(--wn)}li.u::before{content:"○";color:var(--
 <input type="file" id="fg" accept="image/*" hidden><input type="file" id="fc" accept="image/*" capture="environment" hidden>
 <script>
 const $=i=>document.getElementById(i),cl=(v,a,b)=>Math.min(b,Math.max(a,v)),L2=Math.log2;
-const AP=Array.from({length:25},(_,i)=>1.4*2**(i/6)),SH=Array.from({length:52},(_,j)=>2**(j/3)/4000),IS=Array.from({length:22},(_,k)=>100*2**(k/3));
+const AP=Array.from({length:31},(_,i)=>2**(i/6)),SH=Array.from({length:61},(_,j)=>2**(j/3)/32000),IS=Array.from({length:31},(_,k)=>100*2**(k/3));
 const r2=x=>{const p=10**(Math.floor(Math.log10(x))-1);return Math.round(x/p)*p};
 const fA=n=>"f/"+(n<10?n.toFixed(1):Math.round(n)),fS=t=>t>=1?(t<10?t.toFixed(1):Math.round(t))+"s":"1/"+r2(1/t),fI=i=>r2(100*2**(i/3));
 const ev3=v=>(v>0?"+":"")+(v/3).toFixed(1)+" EV",fmD=m=>m<1?Math.round(m*100)+" cm":m<10?m.toFixed(1)+" m":Math.round(m)+" m",DM=v=>.3*Math.pow(333,v/100),vd=m=>Math.round(100*Math.log(m/.3)/Math.log(333));
-const ia=n=>cl(Math.round(6*L2(n/1.4)),0,24),is=t=>cl(Math.round(3*L2(4000*t)),0,51);
+const ia=n=>cl(Math.round(6*L2(n)),0,30),is=t=>cl(Math.round(3*L2(32000*t)),0,60);
 const LT=[["Auto",null,5500],["☀️ Sunny",15,5600],["⛅ Overcast",12,6500],["🏠 Indoor",7,3500],["🌆 Dusk",5,4500],["🌙 Night",2,3800],["🌌 Dark sky",-6,3800]];
 const DD={portrait:2.5,landscape:40,sports:15,night:25,macro:.3,street:5,astro:100,wildlife:25};
 const MD={
-portrait:{n:"Portrait",e:"🧑",N:2,f:85,tm:1/200,ic:15,t:["Wide aperture softens everything away from your focus point.","Tap your subject’s eyes to focus.","Keep ISO low for clean skin tones."],ck:N=>N>4?"Background is too sharp. Open up to f/2.8 or wider.":"",ok:"Subject stands out from the background."},
-landscape:{n:"Landscape",e:"🏔️",N:9,f:24,tm:1/60,ic:9,tp:1,t:["f/8 to f/11 keeps near and far sharp.","Wide focal lengths show more of the scene.","Low ISO and a tripod give the cleanest detail."],ck:N=>N<8?"Aperture is too wide. Use f/8 to f/11 for front-to-back sharpness.":"",ok:"Front-to-back sharpness looks good."},
+portrait:{n:"Portrait",e:"🧑",N:2,f:85,tm:1/200,ic:15,t:["Wide aperture softens everything away from your focus point.","Tap your subject’s eyes to focus.","Keep ISO low for clean skin tones."],ck:(N,t,q)=>q>5?"Background is too sharp. Open the aperture wider or zoom in.":"",ok:"Subject stands out from the background."},
+landscape:{n:"Landscape",e:"🏔️",N:9,f:24,tm:1/60,ic:9,tp:1,t:["f/8 to f/11 keeps near and far sharp.","Wide focal lengths show more of the scene.","Low ISO and a tripod give the cleanest detail."],ck:(N,t,q)=>q<7.5?"Aperture is too wide. Close it down for front-to-back sharpness.":"",ok:"Front-to-back sharpness looks good."},
 sports:{n:"Sports",e:"🏃",N:4,f:200,tm:1/1000,ic:18,fm:1,t:["A fast shutter (1/1000 s or more) freezes motion.","Long lenses bring distant action closer.","Continuous AF (AF-C) keeps a moving subject sharp."],ck:(N,t)=>t>1/500?"Motion will blur. Use 1/1000 s or faster.":"",ok:"Action is frozen."},
 night:{n:"Night",e:"🌃",N:8,f:35,tf:4,ic:12,t:["A tripod and a 2 to 8 second shutter paint light trails.","Keep ISO low to avoid grain.","Warm white balance keeps street lights natural."],ck:(N,t)=>t<1?"Exposure is too short for light trails. Try 2 to 8 s on a tripod.":"",ok:"Long exposure paints the light trails."},
-macro:{n:"Macro",e:"🌸",N:6.3,f:100,tm:1/125,ic:9,tp:1,t:["Close-ups have razor-thin depth of field.","Tap the part you want sharpest.","A tripod and f/5.6 to f/8 keep the subject sharp."],ck:N=>N<4?"Depth of field is razor thin up close. Try f/5.6 to f/8.":"",ok:"The subject is sharp with a soft backdrop."},
+macro:{n:"Macro",e:"🌸",N:6.3,f:100,tm:1/125,ic:9,tp:1,t:["Close-ups have razor-thin depth of field.","Tap the part you want sharpest.","A tripod and f/5.6 to f/8 keep the subject sharp."],ck:(N,t,q)=>q<5?"Depth of field is razor thin up close. Close the aperture down.":"",ok:"The subject is sharp with a soft backdrop."},
 street:{n:"Street",e:"🚶",N:5.6,f:35,tm:1/250,ic:15,t:["1/250 s freezes walking pedestrians.","A 35 mm lens keeps you close to the action.","Pre-focus on a spot and wait for people to step into it."],ck:(N,t)=>t>1/125?"Walkers will blur. Use 1/250 s or faster.":"",ok:"Walkers are crisp."},
-astro:{n:"Astro",e:"🌌",N:2.8,f:24,tf:15,ic:21,hi:21,t:["Open the aperture wide and use a tripod.","Stay under about 20 s so stars stay dots, not trails.","High ISO is expected here."],ck:(N,t)=>t>20?"Stars will trail. Keep the shutter near 15 s.":N>4?"Open the aperture to f/2.8 or wider to gather light.":"",ok:"Stars are sharp points."},
+astro:{n:"Astro",e:"🌌",N:2.8,f:24,tf:15,ic:21,hi:24,t:["Open the aperture wide and use a tripod.","Stay under about 20 s so stars stay dots, not trails.","High ISO is expected here."],ck:(N,t)=>t>20?"Stars will trail. Keep the shutter near 15 s.":N>4?"Open the aperture to f/2.8 or wider to gather light.":"",ok:"Stars are sharp points."},
 wildlife:{n:"Wildlife",e:"🦅",N:5.6,f:200,tm:1/1000,ic:18,fm:1,t:["A long lens fills the frame from a safe distance.","1/1000 s or faster freezes wings and movement.","Continuous AF (AF-C) tracks a moving animal."],ck:(N,t)=>t>1/800?"The animal will blur. Use 1/1000 s or faster.":"",ok:"The animal is sharp."}};
-const SL=[["a","Aperture","depth of field",0,24,v=>fA(AP[v]),"Exposure"],["s","Shutter speed","motion and light",0,51,v=>fS(SH[v])],["i","ISO","grain and light",0,21,v=>fI(v)],["c","Exposure comp","bias the camera’s choice",-9,9,ev3],["f","Zoom (focal length)","digital crop, long zooms look soft",24,200,v=>v+" mm","Lens and focus"],["d","Subject distance","blur strength",0,100,v=>fmD(DM(v))],["k","White balance","colour temperature",2500,9000,v=>v+" K","Colour and light"],["l","Light adjust","fine-tune scene brightness",-9,9,ev3]];
+const SL=[["a","Aperture","depth of field",0,30,v=>fA(AP[v]),"Exposure"],["s","Shutter speed","motion and light",0,60,v=>fS(SH[v])],["i","ISO","grain and light",0,30,v=>fI(v)],["c","Exposure comp","bias the camera’s choice",-9,9,ev3],["f","Focal length","your lens’s zoom range",24,200,v=>v+" mm"+(CAM.c!=1?` (${Math.round(v*CAM.c)} eq)`:""),"Lens and focus"],["d","Subject distance","blur strength",0,100,v=>fmD(DM(v))],["k","White balance","colour temperature",2500,9000,v=>v+" K","Colour and light"],["l","Light adjust","fine-tune scene brightness",-9,9,ev3]];
 const EM={M:["M","Manual","You set aperture, shutter and ISO."],A:["A","Aperture priority","You set aperture and ISO. The camera picks the shutter."],S:["S","Shutter priority","You set shutter and ISO. The camera picks the aperture."],P:["Auto","Auto","The camera chooses everything. Convenient, but it can’t know your creative intent."]};
-let M,P,S=null,EF,CHL=-1,LC=[],AUTOEV=null,SRC=null,TRK=null,FM="environment",A=1,ZM=1,BL=0,R0=100,CUR={o:0,ii:0,ev:12},PY=null,MO=0,HI=0,FACE=0,FD,hc=0,LB=null,PM="",SPOT=0,SM=0,YR=null,LFE=12,SPOTON=true,FIT=true;
+let M,P,S=null,EF,CHL=-1,LC=[],AUTOEV=null,SRC=null,TRK=null,FM="environment",A=1,ZM=1,BL=0,R0=100,CUR={o:0,ii:0,ev:12},PY=null,MO=0,HI=0,FACE=0,FD,hc=0,LB=null,PM="",CAM,LENS,GEAR=false,TFAST=1/4000,SPOT=0,SM=0,YR=null,LFE=12,SPOTON=true,FIT=true;
 const evs=()=>{const l=LT[S?S.lt|0:0];return(l[1]??(AUTOEV??12))+(S?S.l/3:0)};
 const evm=()=>evs()+(S&&SPOTON?SPOT:0);
-function rec(m,fl){const p=MD[m],ev=evm(),f=fl||p.f;let N=p.N,i=0,t;
-if(p.tf){i=cl(Math.round(3*(L2(N*N/p.tf)-ev)),0,p.ic);t=N*N/2**(ev+i/3)}
-else{for(;i<p.ic;i++){t=N*N/2**(ev+i/3);if(t<=p.tm)break}t=N*N/2**(ev+i/3);if(t>p.tm&&p.tp){i=0;t=N*N/2**ev}}
-if(t<1/4000){t=1/4000;N=Math.sqrt(t*2**(ev+i/3))}
-t=Math.min(t,30);return{a:ia(N),s:is(t),i,f:p.f,tri:t>1/(f*1.2)?1:0,fm:p.fm|0}}
+const parseG=(t,mk)=>{let g="",d="";return t.trim().split("\n").flatMap(l=>{if(l[0]=="#"){[g,d]=l.slice(1).split("|");return[]}return[mk(g,l.split("~"),d)]})};
+const mkCam=(g,a,d)=>{const iso=+a[2]||12800,fs=+a[3]||4000;return{g,n:a[0],c:+(a[1]||d||1),iso,fs,im:cl(Math.round(3*L2(iso/100)),0,30),sj:cl(Math.round(3*L2(32000/fs)),0,60),ib:+a[4]||0}};
+const mkLens=(g,a)=>{const f1=+a[1]||24,f2=Math.max(f1,+a[2]||f1),n1=+a[3]||2.8,n2=+a[4]||n1;return{g,n:a[0],f1,f2,n1,n2,is:+a[5]||0,nm:+a[6]||cl(Math.round(n2*8),16,32)}};
+const CAMS=parseG(`#Default|1
+Any camera (default)~~12800~4000
+#Smartphone|5.6
+Smartphone main camera (typical)~~3200~8000
+#Canon full frame|1
+EOS R1~~102400~8000~8
+EOS R3~~51200~8000~8
+EOS R5~~51200~8000~8
+EOS R5 Mark II~~51200~8000~8.5
+EOS R6~~102400~8000~8
+EOS R6 Mark II~~102400~8000~8
+EOS R8~~102400~8000
+EOS RP~~40000~4000
+EOS 5D Mark IV~~32000~8000
+EOS 6D Mark II~~40000~4000
+EOS 1D X Mark III~~102400~8000
+#Canon APS-C|1.6
+EOS R7~~32000~8000~8
+EOS R10~~32000~4000
+EOS R50~~32000~4000
+EOS 90D~~25600~8000
+EOS 7D Mark II~~16000~8000
+EOS Rebel T7 / 2000D~~6400~4000
+EOS Rebel T8i / 850D~~25600~4000
+EOS M50 Mark II~~25600~4000
+#Nikon full frame|1
+Z9~~25600~8000~6
+Z8~~25600~8000~6
+Z7 II~~25600~8000~5
+Z6 III~~64000~8000~8
+Z6 II~~51200~8000~5
+Z5~~51200~8000~5
+Zf~~64000~8000~8
+D850~~25600~8000
+D780~~51200~8000
+D750~~12800~4000
+D6~~102400~8000
+#Nikon APS-C|1.5
+Z50 / Z50 II~~51200~4000
+Z30~~51200~4000
+Zfc~~51200~4000
+D7500~~51200~8000
+D500~~51200~8000
+D5600~~25600~4000
+D3500~~25600~4000
+#Sony full frame|1
+A1~~102400~32000~5.5
+A9 II~~25600~32000~5.5
+A7R V~~32000~8000~8
+A7 IV~~51200~8000~5.5
+A7S III~~102400~8000~5.5
+A7C II~~51200~8000~7
+A7 III~~51200~8000~5
+A7 II~~25600~8000~4.5
+FX3~~102400~8000~5
+#Sony APS-C|1.5
+A6700~~32000~8000~5
+A6600~~32000~4000~5
+A6400~~32000~4000
+A6100~~32000~4000
+A6000~~25600~4000
+ZV-E10~~32000~4000
+#Fujifilm APS-C|1.5
+X-T5~~51200~8000~7
+X-H2S~~51200~8000~7
+X-H2~~51200~8000~7
+X-T4~~51200~8000~6.5
+X-T3~~51200~8000
+X-S20~~51200~4000~7
+X-S10~~51200~4000~6
+X-Pro3~~51200~8000
+X-E4~~51200~4000
+X-T30 II~~51200~4000
+X100VI~~51200~4000~6
+#Fujifilm and other medium format|.79
+Fujifilm GFX100 II~~12800~8000~8
+Fujifilm GFX100S~~12800~4000~6
+Fujifilm GFX50S II~~12800~4000~6
+Hasselblad X2D 100C~~25600~2000~7
+Pentax 645Z~~204800~4000
+#Panasonic Lumix full frame|1
+Lumix S5 II~~51200~8000~6.5
+Lumix S5~~51200~8000~5
+Lumix S1R~~25600~8000~6
+Lumix S1H~~51200~8000~6
+#Micro Four Thirds (Panasonic, OM System, Olympus)|2
+Lumix GH6~~25600~8000~7.5
+Lumix GH5 II~~25600~8000~6.5
+Lumix G9 II~~25600~8000~8
+Lumix G100~~25600~4000
+OM-1 / OM-1 Mark II~~25600~8000~7
+OM-5~~25600~8000~6.5
+OM-D E-M1 Mark III~~25600~8000~7
+OM-D E-M5 Mark III~~25600~8000~5.5
+OM-D E-M10 Mark IV~~25600~4000~4.5
+#1-inch compacts|2.7
+Sony RX100 VII~~12800~32000
+Canon PowerShot G7 X Mark III~~12800~2000
+#Leica, Pentax, Sigma|1
+Leica Q3~~50000~2000
+Leica M11~~50000~4000
+Leica SL3~~50000~8000~6
+Sigma fp~~102400~4000
+Pentax K-1 Mark II~~204800~8000~5.5
+Pentax K-3 Mark III~1.5~51200~8000~5.5`,mkCam),LENSES=parseG(`#Default
+Universal 24–200 mm f/1.4 (default)~24~200~1.4~~0~22
+#Smartphone and built-in lenses
+Smartphone main lens (26 mm eq, fixed f/1.8)~4.7~~1.8~~0~1.8
+Smartphone 3× lens (77 mm eq, fixed f/2.8)~13.8~~2.8~~0~2.8
+Fujifilm X100VI 23 mm f/2~23~~2~~0~16
+Leica Q3 28 mm f/1.7~28~~1.7~~0~16
+Sony RX100 VII 9–72 mm f/2.8–4.5~9~72~2.8~4.5~0~11
+Canon G7 X III 8.8–36.8 mm f/1.8–2.8~8.8~36.8~1.8~2.8~0~11
+#Generic prime lenses
+14 mm f/1.8~14~~1.8
+20 mm f/1.4~20~~1.4
+24 mm f/1.4~24~~1.4
+28 mm f/2~28~~2
+35 mm f/1.4~35~~1.4
+35 mm f/1.8~35~~1.8
+50 mm f/1.2~50~~1.2
+50 mm f/1.4~50~~1.4
+50 mm f/1.8~50~~1.8
+58 mm f/0.95~58~~.95
+85 mm f/1.2~85~~1.2
+85 mm f/1.4~85~~1.4
+85 mm f/1.8~85~~1.8
+105 mm f/1.4~105~~1.4
+135 mm f/1.8~135~~1.8
+200 mm f/2~200~~2~~4
+300 mm f/2.8~300~~2.8~~4
+400 mm f/2.8~400~~2.8~~4
+600 mm f/4~600~~4~~4
+#Generic zoom lenses
+14–24 mm f/2.8~14~24~2.8
+16–35 mm f/2.8~16~35~2.8
+24–70 mm f/2.8~24~70~2.8
+24–70 mm f/4~24~70~4
+24–105 mm f/4~24~105~4~~4
+24–120 mm f/4~24~120~4~~4
+28–70 mm f/3.5–5.6 (kit)~28~70~3.5~5.6~3
+70–200 mm f/2.8~70~200~2.8~~4
+70–200 mm f/4~70~200~4~~4
+70–300 mm f/4.5–5.6~70~300~4.5~5.6~4
+100–400 mm f/4.5–5.6~100~400~4.5~5.6~4
+150–600 mm f/5–6.3~150~600~5~6.3~4
+200–600 mm f/5.6–6.3~200~600~5.6~6.3~4
+18–55 mm f/3.5–5.6 (APS-C kit)~18~55~3.5~5.6~3
+18–135 mm f/3.5–5.6~18~135~3.5~5.6~4
+18–200 mm f/3.5–6.3~18~200~3.5~6.3~4
+55–250 mm f/4–5.6~55~250~4~5.6~4
+24–200 mm f/4–6.3~24~200~4~6.3~4
+28–300 mm f/3.5–6.3~28~300~3.5~6.3~4
+#Macro lenses
+60 mm f/2.8 macro~60~~2.8
+90 mm f/2.8 macro~90~~2.8~~3
+105 mm f/2.8 macro~105~~2.8~~4
+#Canon RF and EF
+RF 50mm f/1.8 STM~50~~1.8
+RF 35mm f/1.8 Macro IS STM~35~~1.8~~5
+RF 85mm f/2 Macro IS STM~85~~2~~5
+RF 85mm f/1.2L USM~85~~1.2
+RF 28–70mm f/2L USM~28~70~2
+RF 24–70mm f/2.8L IS USM~24~70~2.8~~5
+RF 24–105mm f/4L IS USM~24~105~4~~5
+RF 70–200mm f/2.8L IS USM~70~200~2.8~~5
+RF 100–500mm f/4.5–7.1L IS USM~100~500~4.5~7.1~5
+RF 15–35mm f/2.8L IS USM~15~35~2.8~~5
+RF-S 18–45mm f/4.5–6.3 IS STM~18~45~4.5~6.3~4
+RF-S 18–150mm f/3.5–6.3 IS STM~18~150~3.5~6.3~4
+EF 50mm f/1.8 STM~50~~1.8
+EF 85mm f/1.8 USM~85~~1.8
+EF 24–70mm f/2.8L II USM~24~70~2.8
+EF 70–200mm f/2.8L IS III USM~70~200~2.8~~4
+EF 100–400mm f/4.5–5.6L IS II USM~100~400~4.5~5.6~4
+EF 70–300mm f/4–5.6 IS II USM~70~300~4~5.6~4
+EF-S 18–55mm f/3.5–5.6 IS STM~18~55~3.5~5.6~4
+EF-S 55–250mm f/4–5.6 IS STM~55~250~4~5.6~3.5
+#Nikon Z and F
+Z 35mm f/1.8 S~35~~1.8
+Z 50mm f/1.8 S~50~~1.8
+Z 85mm f/1.8 S~85~~1.8
+Z 105mm f/2.8 VR S Macro~105~~2.8~~4.5
+Z 14–24mm f/2.8 S~14~24~2.8
+Z 24–70mm f/2.8 S~24~70~2.8
+Z 24–70mm f/4 S~24~70~4
+Z 24–120mm f/4 S~24~120~4
+Z 70–200mm f/2.8 VR S~70~200~2.8~~5
+Z 100–400mm f/4.5–5.6 VR S~100~400~4.5~5.6~5.5
+Z DX 16–50mm f/3.5–6.3 VR~16~50~3.5~6.3~4.5
+Z DX 50–250mm f/4.5–6.3 VR~50~250~4.5~6.3~5
+AF-S 50mm f/1.8G~50~~1.8
+AF-S 85mm f/1.8G~85~~1.8
+AF-S 24–70mm f/2.8E ED VR~24~70~2.8~~4
+AF-S 70–200mm f/2.8E FL ED VR~70~200~2.8~~4
+AF-P DX 18–55mm f/3.5–5.6G VR~18~55~3.5~5.6~4
+AF-P 70–300mm f/4.5–6.3E ED VR~70~300~4.5~6.3~4.5
+AF-S 200–500mm f/5.6E ED VR~200~500~5.6~~4.5
+#Sony E and FE
+FE 35mm f/1.8~35~~1.8
+FE 50mm f/1.8~50~~1.8
+FE 50mm f/1.2 GM~50~~1.2
+FE 85mm f/1.8~85~~1.8
+FE 85mm f/1.4 GM~85~~1.4
+FE 16–35mm f/2.8 GM II~16~35~2.8
+FE 24–70mm f/2.8 GM II~24~70~2.8
+FE 24–105mm f/4 G OSS~24~105~4~~4
+FE 28–70mm f/3.5–5.6 OSS~28~70~3.5~5.6~3
+FE 70–200mm f/2.8 GM OSS II~70~200~2.8~~4
+FE 100–400mm f/4.5–5.6 GM OSS~100~400~4.5~5.6~4
+FE 200–600mm f/5.6–6.3 G OSS~200~600~5.6~6.3~4
+E PZ 16–50mm f/3.5–5.6 OSS~16~50~3.5~5.6~4
+E 18–135mm f/3.5–5.6 OSS~18~135~3.5~5.6~4
+E 70–350mm f/4.5–6.3 G OSS~70~350~4.5~6.3~4
+#Fujifilm X
+XF 23mm f/2 R WR~23~~2
+XF 35mm f/1.4 R~35~~1.4
+XF 35mm f/2 R WR~35~~2
+XF 56mm f/1.2 R~56~~1.2
+XF 90mm f/2 R LM WR~90~~2
+XF 10–24mm f/4 R OIS WR~10~24~4~~3.5
+XF 16–55mm f/2.8 R LM WR~16~55~2.8
+XF 18–55mm f/2.8–4 R LM OIS~18~55~2.8~4~3
+XF 50–140mm f/2.8 R LM OIS WR~50~140~2.8~~5
+XF 70–300mm f/4–5.6 R LM OIS WR~70~300~4~5.6~5.5
+XF 100–400mm f/4.5–5.6 R LM OIS WR~100~400~4.5~5.6~5
+XC 15–45mm f/3.5–5.6 OIS PZ~15~45~3.5~5.6~3
+#Micro Four Thirds
+Olympus 17mm f/1.8~17~~1.8
+Olympus 25mm f/1.8~25~~1.8
+Olympus 45mm f/1.8~45~~1.8
+Olympus 75mm f/1.8~75~~1.8
+Olympus 17mm f/1.2 PRO~17~~1.2
+Olympus 12–40mm f/2.8 PRO~12~40~2.8
+Olympus 12–100mm f/4 IS PRO~12~100~4~~6
+Olympus 40–150mm f/2.8 PRO~40~150~2.8
+Olympus 300mm f/4 IS PRO~300~~4~~6
+Panasonic Leica DG 25mm f/1.4~25~~1.4
+Panasonic Lumix G 14–42mm f/3.5–5.6~14~42~3.5~5.6~4
+Panasonic Lumix G 12–60mm f/3.5–5.6~12~60~3.5~5.6~5
+Panasonic Lumix G 100–400mm f/4–6.3~100~400~4~6.3~5
+#L-mount, Sigma, Tamron, Leica
+Sigma 35mm f/1.4 DG DN Art~35~~1.4
+Sigma 50mm f/1.4 DG DN Art~50~~1.4
+Sigma 85mm f/1.4 DG DN Art~85~~1.4
+Sigma 24–70mm f/2.8 DG DN Art~24~70~2.8
+Sigma 150–600mm f/5–6.3 DG DN OS~150~600~5~6.3~4
+Sigma 30mm f/1.4 DC DN~30~~1.4
+Sigma 56mm f/1.4 DC DN~56~~1.4
+Sigma 18–50mm f/2.8 DC DN~18~50~2.8
+Tamron 28–75mm f/2.8 Di III VXD G2~28~75~2.8
+Tamron 35–150mm f/2–2.8 Di III VXD~35~150~2~2.8
+Tamron 70–180mm f/2.8 Di III VXD~70~180~2.8
+Tamron 150–500mm f/5–6.7 Di III VC VXD~150~500~5~6.7~4
+Tamron 17–70mm f/2.8 Di III-A VC RXD~17~70~2.8~~4
+Tamron 18–300mm f/3.5–6.3 Di III-A VC~18~300~3.5~6.3~4
+Lumix S 50mm f/1.8~50~~1.8
+Lumix S 24–105mm f/4 Macro OIS~24~105~4~~5
+Lumix S 70–200mm f/4 OIS~70~200~4~~5
+Leica Summicron-M 35mm f/2~35~~2
+Leica Summilux-M 50mm f/1.4~50~~1.4
+Leica Noctilux-M 50mm f/0.95~50~~.95
+Leica Vario-Elmarit-SL 24–70mm f/2.8~24~70~2.8`,mkLens);
+const openN=f=>{const L=LENS;return L.f1==L.f2||L.n1==L.n2?L.n1:Math.max(.95,L.n1*Math.pow(L.n2/L.n1,Math.log(cl(f,L.f1,L.f2)/L.f1)/Math.log(L.f2/L.f1)))};
+const STAB=()=>Math.max(CAM.ib,LENS.is),fmtC=c=>c<.9?"Medium format":c<1.2?"Full frame":c<1.8?"APS-C":c<2.2?"Micro Four Thirds":c<3?"1-inch":"Small sensor";
+const GI=["gcs","gci","gcf","gcb","gl1","gl2","gn1","gn2","gis"];
+function gOpts(a,id){let h="",g=null;a.forEach((x,i)=>{if(x.g!==g){if(g!==null)h+="</optgroup>";h+=`<optgroup label="${x.g}">`;g=x.g}h+=`<option value="${i}">${x.n}</option>`});$(id).innerHTML=h+'</optgroup><option value="-1">Custom…</option>'}
+function setGear(){const c=+$("selc").value,l=+$("sell").value,v=id=>$(id).value;
+CAM=c<0?mkCam("Custom",["My camera",v("gcs"),v("gci"),v("gcf"),v("gcb")],1):CAMS[c];
+LENS=l<0?mkLens("Custom",["My lens",v("gl1"),v("gl2"),v("gn1"),v("gn2"),v("gis")]):LENSES[l];
+GEAR=CAM!==CAMS[0]||LENS!==LENSES[0];TFAST=1/CAM.fs;$("ccf").hidden=c>=0;$("lcf").hidden=l>=0;
+const q=x=>Math.round(x*CAM.c);
+$("gsum").textContent=`${fmtC(CAM.c)}, ${CAM.c}× crop. ISO 100 to ${CAM.iso}, fastest shutter 1/${CAM.fs} s, body stabilization ${CAM.ib?CAM.ib+" stops":"none"}. Lens ${LENS.f1==LENS.f2?LENS.f1+" mm":LENS.f1+" to "+LENS.f2+" mm"}, f/${LENS.n1}${LENS.n2!=LENS.n1?" to f/"+LENS.n2:""}, ${LENS.is?"lens stabilization "+LENS.is+" stops":"no lens stabilization"}. Equivalent view: ${q(LENS.f1)}${LENS.f1==LENS.f2?"":" to "+q(LENS.f2)} mm.`;
+try{localStorage.setItem("ps_gear",JSON.stringify([c,l,GI.map(v)]))}catch(e){}}
+function initGear(){gOpts(CAMS,"selc");gOpts(LENSES,"sell");
+try{const g=JSON.parse(localStorage.getItem("ps_gear"));if(g){GI.forEach((id,i)=>g[2][i]!=null&&($(id).value=g[2][i]));if(g[0]<CAMS.length)$("selc").value=g[0];if(g[1]<LENSES.length)$("sell").value=g[1]}}catch(e){}
+setGear()}
+['selc','sell',...GI].forEach(id=>$(id).onchange=()=>{setGear();if(S)load(M)});
+
+function rec(m,fl){const p=MD[m],fa=fl||cl(Math.round(p.f/CAM.c),LENS.f1,LENS.f2),ev=evm(),no=openN(fa),ic=Math.min(p.ic,CAM.im);let N=cl(p.N,no,LENS.nm),i=0,t;
+if(p.tf){i=cl(Math.round(3*(L2(N*N/p.tf)-ev)),0,ic);t=N*N/2**(ev+i/3)}
+else{for(;i<ic;i++){t=N*N/2**(ev+i/3);if(t<=p.tm)break}t=N*N/2**(ev+i/3);if(t>p.tm&&p.tp){i=0;t=N*N/2**ev}}
+if(t<TFAST){t=TFAST;N=cl(Math.sqrt(t*2**(ev+i/3)),no,LENS.nm)}
+t=cl(t,TFAST,30);return{a:ia(N),s:is(t),i,f:fa,tri:t>Math.pow(2,STAB())/(fa*CAM.c*1.2)?1:0,fm:p.fm|0}}
 /* camera */
 const V=document.createElement("video");V.muted=true;V.playsInline=true;V.setAttribute("playsinline","");V.setAttribute("muted","");V.style.cssText="position:fixed;left:0;top:0;width:2px;height:2px;opacity:.01;pointer-events:none";document.body.appendChild(V);
 async function startCam(){const m=$("msg");$("go").textContent="Starting…";try{if(!navigator.mediaDevices)throw Error("This page can’t open the camera.");if(V.srcObject)V.srcObject.getTracks().forEach(t=>t.stop());
@@ -152,7 +440,7 @@ requestAnimationFrame(frame);
 setInterval(()=>{if(TRK){try{const s=TRK.getSettings();if(s.exposureTime&&s.iso){const e=L2(1.8*1.8/(s.exposureTime*1e-4))-L2(s.iso/100);if(AUTOEV==null||Math.abs(e-AUTOEV)>.2){AUTOEV=e;if(S&&!S.lt){if(FIT&&S.md=="M"&&Math.abs(evm()-LFE)>1)fitNow();else draw()}}}}catch(x){}}},700);
 /* live histogram + scene hints */
 const tc=document.createElement("canvas");tc.width=64;tc.height=48;const tx=tc.getContext("2d",{willReadFrequently:true});
-setInterval(()=>{if(!SRC||!S)return;tx.drawImage(cv,0,0,64,48);const d=tx.getImageData(0,0,64,48).data,Y=new Float32Array(3072),B=new Array(48).fill(0),g=2**CUR.o,ns=CUR.ii/21*.1;let mo=0;
+setInterval(()=>{if(!SRC||!S)return;tx.drawImage(cv,0,0,64,48);const d=tx.getImageData(0,0,64,48).data,Y=new Float32Array(3072),B=new Array(48).fill(0),g=2**CUR.o,ns=CUR.ie/21*.1;let mo=0;
 for(let i=0;i<3072;i++){const y=(d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11)/255;Y[i]=y;if(PY)mo+=Math.abs(y-PY[i]);B[Math.min(47,cl(Math.pow(Math.pow(y,2.2)*g,1/2.2)+(Math.random()-.5)*ns,0,1)*48|0)]++}
 MO=PY?MO*.8+mo/3072*20:0;PY=Y;YR=Y;if(SPOTON){SM=SM*.7+spotNow()*.3;const v=Math.round(SM*3)/3;if(Math.abs(v-SPOT)>=.34){SPOT=v;draw()}}const gx=$("hg").getContext("2d"),tot=3072,mx=Math.max(1,...B.slice(1,47))*1.15;
 gx.clearRect(0,0,96,40);B.forEach((v,i)=>{const h=Math.min(1,v/mx)*36;gx.fillStyle=(i==0||i==47)&&v/tot>.05?"#ff6b5b":"#e8eaee";gx.fillRect(i*2,40-h,2,h)});HI=B[47]/tot>.05;hints()},140);
@@ -161,44 +449,47 @@ if(window.FaceDetector&&SRC===V&&FD!==0){try{FD=FD||new FaceDetector({fastMode:t
 $("hn").onclick=e=>load(e.target.dataset.m);
 /* state to visuals */
 function draw(){
-const md=S.md,f=S.f,EV=evs(),EVm=evm(),T=EVm-(md=="A"||md=="S"?S.c/3:0);
+S.f=cl(S.f,LENS.f1,LENS.f2);const f=S.f,no=openN(f),nm=LENS.nm,amin=ia(no),amax=ia(nm);S.a=cl(S.a,amin,amax);S.s=cl(S.s,CAM.sj,60);S.i=cl(S.i,0,CAM.im);
+const md=S.md,EV=evs(),EVm=evm(),T=EVm-(md=="A"||md=="S"?S.c/3:0),fq=f*CAM.c,stab=STAB();
 let N=AP[S.a],t=SH[S.s],ii=S.i,iso;
-if(md=="A")t=cl(N*N/2**(T+ii/3),1/4000,30);
-else if(md=="S")N=cl(Math.sqrt(t*2**(T+ii/3)),1.4,22.4);
-else if(md=="P"){const lim=1/Math.max(60,f*1.2);let r;
-for(let i=0;i<22&&!r;i++)for(const n of[5.6,4,2.8,2,1.4]){const tt=n*n/2**(T+i/3);if(tt<=lim){r=[n,tt,i];break}}
-r=r||[1.4,1.96/2**(T+7),21];
-if(r[1]<1/4000){r[1]=1/4000;r[0]=cl(Math.sqrt(2**(T+r[2]/3)/4000),1.4,22.4)}
-N=r[0];t=cl(r[1],1/4000,30);ii=r[2];S.af=1;S.fm=P.fm|0}
+if(md=="A")t=cl(N*N/2**(T+ii/3),TFAST,30);
+else if(md=="S")N=cl(Math.sqrt(t*2**(T+ii/3)),no,nm);
+else if(md=="P"){const lim=1/Math.max(60,fq*1.2/2**stab);let r;
+for(let i=0;i<=CAM.im&&!r;i++)for(const n0 of[5.6,4,2.8,2,1.4]){const n=cl(n0,no,nm),tt=n*n/2**(T+i/3);if(tt<=lim){r=[n,tt,i];break}}
+r=r||[no,no*no/2**(T+CAM.im/3),CAM.im];
+if(r[1]<TFAST){r[1]=TFAST;r[0]=cl(Math.sqrt(2**(T+r[2]/3)*TFAST),no,nm)}
+N=r[0];t=cl(r[1],TFAST,30);ii=r[2];S.af=1;S.fm=P.fm|0}
 iso=fI(ii);
 const E={a:ia(N),s:is(t),i:ii},sv=L2(N*N/t)-ii/3,o=EVm-sv,oi=EV-sv;
-CUR={o:oi,ii,ev:EV};ZM=cl(f/50,1,2.5);A=t>1/30?cl(.033/t,.08,1):1;
-const m=cl(Math.pow(f/60,.6),.7,2.2),ds=Math.pow(3/DM(S.d),.7),sh=S.tri?0:cl(L2(t*f)*1.4,0,8);
-BL=cl(8*Math.pow(m,1.5)/N*cl(ds,.4,2.2),0,12);R0=cl(20+N*5,20,100);
+const ie=Math.max(0,ii+6*L2(Math.min(CAM.c,3)));CUR={o:oi,ii,ie,ev:EV};ZM=GEAR?cl(fq/26,1,12):cl(f/50,1,2.5);A=t>1/30?cl(.033/t,.08,1):1;
+const m=cl(Math.pow(fq/60,.6),.7,2.2),ds=Math.pow(3/DM(S.d),.7),sh=S.tri?0:cl(L2(t*fq/2**stab)*1.4,0,8),Nq=N*CAM.c;
+BL=cl(8*Math.pow(m,1.5)/Nq*cl(ds,.4,2.2),0,12);R0=cl(20+Nq*5,20,100);
 cb.style.opacity=BL>.6?1:0;cb.style.filter=`blur(${BL}px)`;
 const mk=`radial-gradient(circle at ${S.px}% ${S.py}%,transparent ${R0}%,#000 ${R0+35}%)`;cb.style.maskImage=cb.style.webkitMaskImage=mk;
 $("stack").style.filter=`brightness(${cl(Math.pow(2,oi*.55),.08,3.2)}) blur(${sh}px)`;
 $("bl").style.opacity=cl((oi-1.2)/4,0,.85);
 const kb=LT[S.lt][2],d=cl((S.k-kb)/3000,-1,1),w=$("wb");w.style.background=d>0?"#ff8a1e":"#2f7bff";w.style.opacity=Math.abs(d)*.6;
-$("nz").style.opacity=cl(ii/21*.85+Math.max(0,-oi)*.05,0,.9);
+$("nz").style.opacity=cl(ie/21*.85+Math.max(0,-oi)*.05,0,.9);
 const lock={a:md=="S"||md=="P",s:md=="A"||md=="P",i:md=="P",c:md=="M"||md=="P"};
-SL.forEach(([k,,,,,fm])=>{const e=$("r"+k),v=lock[k]&&E[k]!=null?E[k]:S[k];e.disabled=!!lock[k];e.value=v;$("v"+k).textContent=fm(v)});
+const RG={a:[amin,amax],s:[CAM.sj,60],i:[0,CAM.im],f:[LENS.f1,LENS.f2]};
+SL.forEach(([k,,,,,fm])=>{const e=$("r"+k),v=lock[k]&&E[k]!=null?E[k]:S[k];if(RG[k]){e.min=RG[k][0];e.max=RG[k][1]}e.disabled=!!lock[k]||!!(RG[k]&&RG[k][0]==RG[k][1]);e.value=v;$("v"+k).textContent=fm(v)});
 $("fm").value=S.fm;$("fm").disabled=md=="P";$("tri").checked=!!S.tri;$("emd").textContent=EM[md][2];
 document.querySelectorAll("#em button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.e==md));
 document.querySelectorAll("#lt button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.i==S.lt));
 $("ltd").textContent=(S.lt?`Assuming about EV ${LT[S.lt][1]}.`:AUTOEV!=null?`Your camera reports about EV ${AUTOEV.toFixed(1)}.`:"This camera shares no light data, so Auto assumes EV 12. Pick the lighting that matches your scene.")+(SPOTON?` The focus point reads ${SPOT>0?"+":""}${SPOT.toFixed(1)} EV against the frame average.`:"");
-$("tag").textContent=P.e+" "+P.n+"  "+(md=="P"?"Auto":md)+(SRC===V?" · Live":SRC?" · Photo":"");$("h1").textContent=`${fA(AP[E.a])}  ${fS(SH[E.s])}`;$("h2").textContent=`ISO ${iso}  ${f}mm  ${S.k}K`;
+$("tag").textContent=P.e+" "+P.n+"  "+(md=="P"?"Auto":md)+(SRC===V?" · Live":SRC?" · Photo":"");
+$("gnt").textContent=GEAR?(fq<26?"Your lens is wider than this phone’s view, so the preview shows the phone’s widest view.":ZM>2.5?"Framing matches your lens. The preview is a digital crop, so it looks soft.":""):"";$("h1").textContent=`${fA(AP[E.a])}  ${fS(SH[E.s])}`;$("h2").textContent=`ISO ${iso}  ${f}mm  ${S.k}K`;
 const r=Math.round(o*10)/10;$("ex").firstChild.style.left=(cl(o,-3,3)+3)/6*100+"%";$("exl").textContent=(r>0?"+":"")+r.toFixed(1)+" EV";
 const wr=[],ok=[];
 if(o>.6)wr.push(`Too bright by ${o.toFixed(1)} EV. Close the aperture, speed up the shutter or lower ISO.`);else if(o<-.6)wr.push(`Too dark by ${(-o).toFixed(1)} EV. Open the aperture, slow the shutter or raise ISO.`);else ok.push("Exposure is on target.");
-if(sh>0)wr.push(`Camera shake: the shutter is slower than 1/${f} s. Use a tripod or a faster shutter.`);
-if(ii>=(P.hi||15))wr.push("High ISO adds visible grain. Use it only when you have to.");
+if(sh>0)wr.push(`Camera shake: the shutter is slower than about 1/${Math.round(fq/2**stab)} s for your lens. Use a tripod or a faster shutter.`);
+if(ie>=(P.hi||15))wr.push("High ISO adds visible grain. Use it only when you have to.");
 if(!S.af)wr.push("Tap your subject on screen to set the focus point.");
 $("fb").style.borderColor=S.af?"#51cf66":"#ffd43b";$("fb").style.left=S.px+"%";$("fb").style.top=S.py+"%";
-const c=P.ck(N,t);c?wr.push(c):ok.push(P.ok);
+const c=P.ck(N,t,Nq);c?wr.push(c):ok.push(P.ok);
 $("sc").innerHTML=`${Math.max(0,100-wr.length*20)}<small>${wr.length?"shot score":"perfect shot"}</small>`;
 $("co").innerHTML=wr.map(x=>`<li class="x">${x}</li>`).join("")+ok.map(x=>`<li>${x}</li>`).join("");EF=E;
-post({N,t,iso:+iso,f,o,sh,ii,tri:S.tri,fm:S.fm,af:S.af})}
+post({N,t,iso:+iso,f,fe:fq,ie,o,sh,ii,tri:S.tri,fm:S.fm,af:S.af,lim:Math.round(fq/2**stab),nq:Nq})}
 function load(m){M=m;P=MD[m];const q=S||{};S={...rec(m),k:LT[q.lt|0][2],d:vd(DD[m]),l:q.l|0,c:0,md:"M",lt:q.lt|0,px:q.px??50,py:q.py??46,af:q.af|0};
 CHL=-1;$("chs").value="-1";$("cl").innerHTML="";$("cg").textContent="Pick a challenge to practise one technique.";
 document.querySelectorAll("#md button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m==m));
@@ -218,7 +509,7 @@ $("fm").onchange=e=>{S.fm=+e.target.value;draw()};
 $("gd").onchange=e=>$("fr").classList.toggle("g",e.target.checked);
 $("spt").onchange=e=>{SPOTON=e.target.checked;if(!SPOTON)SPOT=0;draw()};$("fit").onchange=e=>FIT=e.target.checked;$("pv").onclick=e=>{e.stopPropagation();$("pv").hidden=true};
 $("rset").onclick=()=>load(M);
-$("cp").onclick=async e=>{const b=e.target,x=`${P.n} | ${fA(AP[EF.a])} | ${fS(SH[EF.s])} | ISO ${fI(EF.i)} | ${S.f}mm | WB ${S.k}K | ${S.fm?"AF-C":"AF-S"}`+(S.tri?" | tripod":"");let r="Copied";try{await navigator.clipboard.writeText(x)}catch(_){r="Copy blocked by browser"}b.textContent=r;setTimeout(()=>b.textContent="Copy my settings",1800)};
+$("cp").onclick=async e=>{const b=e.target,x=`${GEAR?CAM.n+" + "+LENS.n+" | ":""}${P.n} | ${fA(AP[EF.a])} | ${fS(SH[EF.s])} | ISO ${fI(EF.i)} | ${S.f}mm | WB ${S.k}K | ${S.fm?"AF-C":"AF-S"}`+(S.tri?" | tripod":"");let r="Copied";try{await navigator.clipboard.writeText(x)}catch(_){r="Copy blocked by browser"}b.textContent=r;setTimeout(()=>b.textContent="Copy my settings",1800)};
 $("fr").onclick=e=>{if(e.target.closest("#msg"))return;const r=$("fr").getBoundingClientRect();S.px=(e.clientX-r.left)/r.width*100;S.py=(e.clientY-r.top)/r.height*100;S.af=1;
 try{TRK&&TRK.applyConstraints({advanced:[{focusMode:"single-shot",pointsOfInterest:[{x:S.px/100,y:S.py/100}]}]}).catch(()=>{})}catch(x){}if(SPOTON){SM=spotNow();SPOT=Math.round(SM*3)/3}if(FIT&&S.md=="M")fitNow();else draw()};
 function fitNow(){const r=rec(M,S.f);S.a=r.a;S.s=r.s;S.i=r.i;S.tri=r.tri;LFE=evm();draw();toast(`Fitted to focus point: ${fA(AP[r.a])}  ${fS(SH[r.s])}  ISO ${fI(r.i)}`)}
@@ -230,16 +521,16 @@ function toast(t){const e=$("ts");e.textContent=t;e.classList.add("on");clearTim
 /* challenges */
 const ex=c=>Math.abs(c.o)<=.7,af=c=>c.af;
 const CH=[["Freeze the runner","sports","Freeze fast movement. Aim at anything that moves.",1,[["Shutter 1/1000 s or faster",c=>c.t<=1/1000],["Continuous AF (AF-C)",c=>c.fm==1],["Focus point set",af],["Exposure on target",ex]]],
-["Creamy portrait","portrait","Melt the background behind your subject.",2,[["Aperture f/2.8 or wider",c=>c.N<=2.9],["Zoom 70 mm or longer",c=>c.f>=70],["Focus point set",af],["ISO 400 or lower",c=>c.iso<=400],["Exposure on target",ex]]],
+["Creamy portrait","portrait","Melt the background behind your subject.",2,[["Aperture f/2.8 or wider",c=>c.N<=2.9],["70 mm equivalent or longer",c=>c.fe>=70],["Focus point set",af],["ISO 400 or lower",c=>c.iso<=400],["Exposure on target",ex]]],
 ["Silky light trails","night","Long exposure with moving lights.",5,[["Shutter 2 s or longer",c=>c.t>=2],["Tripod on",c=>c.tri],["ISO 400 or lower",c=>c.iso<=400],["Exposure on target",ex]]],
 ["Sharp landscape","landscape","Keep everything crisp, near to far.",1,[["Aperture f/8 or narrower",c=>c.N>=7.9],["ISO 200 or lower",c=>c.iso<=200],["No camera shake",c=>c.sh==0],["Exposure on target",ex]]],
 ["Dusk street, handheld","street","The light is fading. Stay handheld and keep walkers crisp.",4,[["Tripod off",c=>!c.tri],["Shutter 1/125 s or faster",c=>c.t<=1/120],["No camera shake",c=>c.sh==0],["Exposure on target",ex]]],
-["Catch the animal","wildlife","Freeze an animal with a long zoom.",2,[["Zoom 200 mm",c=>c.f>=200],["Shutter 1/1000 s or faster",c=>c.t<=1/1000],["Continuous AF (AF-C)",c=>c.fm==1],["Exposure on target",ex]]],
+["Catch the animal","wildlife","Freeze an animal with a long zoom.",2,[["200 mm equivalent or longer",c=>c.fe>=200],["Shutter 1/1000 s or faster",c=>c.t<=1/1000],["Continuous AF (AF-C)",c=>c.fm==1],["Exposure on target",ex]]],
 ["Tiny world","macro","Keep a close subject sharp.",2,[["Aperture f/5.6 or narrower",c=>c.N>=5.5],["Focus point set",af],["ISO 400 or lower",c=>c.iso<=400],["Exposure on target",ex]]],
 ["Catch the stars","astro","Pin-sharp stars with no trails.",6,[["Tripod on",c=>c.tri],["Shutter 8 to 20 s",c=>c.t>=8&&c.t<=20],["Aperture f/2.8 or wider",c=>c.N<=2.9],["Exposure on target",ex]]]];
 let DN=new Set();try{JSON.parse(localStorage.getItem("ps_live_done")||"[]").forEach(i=>DN.add(i))}catch(e){}
 function opts(){const v=$("chs").value||"-1";$("chs").innerHTML='<option value="-1">Free play (no challenge)</option>'+CH.map((c,i)=>`<option value="${i}">${DN.has(i)?"✓ ":""}${c[0]}</option>`).join("");$("chs").value=v;$("cn").textContent=DN.size+" of "+CH.length+" complete"}
-function startCh(i){const c=CH[i];load(c[1]);CHL=i;S.lt=c[3];Object.assign(S,{a:12,s:18,i:6,f:50,fm:0,tri:0,af:0,l:0,k:LT[c[3]][2]});$("chs").value=i;draw()}
+function startCh(i){const c=CH[i];load(c[1]);CHL=i;S.lt=c[3];Object.assign(S,{a:15,s:27,i:6,f:cl(Math.round(50/CAM.c),LENS.f1,LENS.f2),fm:0,tri:0,af:0,l:0,k:LT[c[3]][2]});$("chs").value=i;draw()}
 $("chs").onchange=e=>+e.target.value<0?load(M):startCh(+e.target.value);
 /* take shot */
 function blurC(src,W,H,px){const c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d");
@@ -256,7 +547,7 @@ if(BL>.6){const m=blurC(o,W,H,BL*W/$("fr").clientWidth),mx=m.getContext("2d");
 const px=S.px/100*W,py=S.py/100*H,fc=Math.max(Math.hypot(px,py),Math.hypot(W-px,py),Math.hypot(px,H-py),Math.hypot(W-px,H-py)),g=mx.createRadialGradient(px,py,R0/100*fc,px,py,(R0+35)/100*fc);
 g.addColorStop(0,"rgba(0,0,0,0)");g.addColorStop(1,"#000");mx.globalCompositeOperation="destination-in";mx.fillStyle=g;mx.fillRect(0,0,W,H);x.drawImage(m,0,0)}
 if(A<.9){x.globalAlpha=1-A;x.drawImage(cv,0,0,W,H);x.globalAlpha=1}
-const im=x.getImageData(0,0,W,H),d=im.data,o2=CUR.o,gn=cl(Math.pow(2,o2*.55),.08,3.2),wo=cl((o2-1.2)/4,0,.85),dk=cl((S.k-LT[S.lt][2])/3000,-1,1),ns=CUR.ii/21*40;
+const im=x.getImageData(0,0,W,H),d=im.data,o2=CUR.o,gn=cl(Math.pow(2,o2*.55),.08,3.2),wo=cl((o2-1.2)/4,0,.85),dk=cl((S.k-LT[S.lt][2])/3000,-1,1),ns=CUR.ie/21*40;
 for(let i=0;i<d.length;i+=4){const n=(Math.random()-.5)*ns;d[i]=cl((d[i]*(1+.25*dk)*gn+n)*(1-wo)+255*wo,0,255);d[i+1]=cl((d[i+1]*gn+n)*(1-wo)+255*wo,0,255);d[i+2]=cl((d[i+2]*(1-.25*dk)*gn+n)*(1-wo)+255*wo,0,255)}
 x.putImageData(im,0,0);o.toBlob(b=>{LB=b;const u=URL.createObjectURL(b);$("li").src=u;$("pv").src=u;$("pv").hidden=false;$("lc").textContent=`${$("h1").textContent}  ${$("h2").textContent}  ${W}×${H}. Press and hold the photo to save it.`;$("last").hidden=false;toast(PM+" Tap to close")},"image/jpeg",.95)}
 $("shr").onclick=async()=>{try{const f=new File([LB],"shot.jpg",{type:"image/jpeg"});if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:"My shot"});else toast("Press and hold the photo to save it")}catch(e){toast("Press and hold the photo to save it")}};
@@ -267,13 +558,14 @@ const bad=LC.filter(r=>!r[1]);if(bad.length)return PM="Not yet: "+bad[0][0];
 DN.add(CHL);try{localStorage.setItem("ps_live_done",JSON.stringify([...DN]))}catch(e){}opts();PM="Challenge complete!"};
 /* lesson + challenge checks */
 function post(c){
-const D=DM(S.d),F=c.f/1000,H=F*F/(c.N*3e-5)+F,nr=D*(H-F)/(H+D-2*F),fr=D>=H?1/0:D*(H-F)/(H-D),dof=fr==1/0?fmD(nr)+" to infinity":fmD(nr)+" to "+fmD(fr);
-const L=[`Aperture ${fA(c.N)} at ${c.f} mm, subject at ${fmD(D)}. Sharp zone: ${dof}. ${c.N<=2.8?"Shallow, so your subject pops from a soft background.":c.N>=8?"Deep, so most of the scene stays sharp.":"A moderate depth of field."}`,
-`Shutter ${fS(c.t)}: ${c.t<=1/1000?"freezes even fast action":c.t<=1/250?"freezes walking and running pace":c.t<=1/60?"suits still subjects":"moving subjects will smear"}. ${c.sh>0?"That is slower than 1/"+c.f+" s, so handheld shake shows.":"No visible camera shake."}`,
-`ISO ${c.iso}: ${c.ii<=3?"a clean image":c.ii<=12?"some grain":"heavy grain"}. Each ISO stop doubles the light but adds noise.`,
-`${c.f} mm: ${c.f<35?"a wide view that exaggerates near objects":c.f<100?"a natural perspective":"a tight view that compresses the background"}. Moving closer makes the subject larger and the backdrop softer.`];
+const D=DM(S.d),F=c.f/1000,H=F*F/(c.N*3e-5/CAM.c)+F,nr=D*(H-F)/(H+D-2*F),fr=D>=H?1/0:D*(H-F)/(H-D),dof=fr==1/0?fmD(nr)+" to infinity":fmD(nr)+" to "+fmD(fr);
+const L=[`Aperture ${fA(c.N)} at ${c.f} mm${CAM.c!=1?` (${Math.round(c.fe)} mm equivalent)`:""}, subject at ${fmD(D)}. Sharp zone: ${dof}. ${c.N<=2.8?"Shallow, so your subject pops from a soft background.":c.N>=8?"Deep, so most of the scene stays sharp.":"A moderate depth of field."}`,
+`Shutter ${fS(c.t)}: ${c.t<=1/1000?"freezes even fast action":c.t<=1/250?"freezes walking and running pace":c.t<=1/60?"suits still subjects":"moving subjects will smear"}. ${c.sh>0?"That is slower than about 1/"+c.lim+" s for your lens, so handheld shake shows.":"No visible camera shake."}`,
+`ISO ${c.iso}: ${c.ie<=3?"a clean image":c.ie<=12?"some grain":"heavy grain"}. Each ISO stop doubles the light but adds noise.`,
+`${Math.round(c.fe)} mm equivalent: ${c.fe<35?"a wide view that exaggerates near objects":c.fe<100?"a natural perspective":"a tight view that compresses the background"}. Moving closer makes the subject larger and the backdrop softer.`];
+if(CAM.c!=1)L.push(`Sensor: ${CAM.c}× crop. ${fA(c.N)} gives the depth of field of f/${c.nq.toFixed(1)} on full frame, and noise like ISO ${fI(c.ie)} on full frame.`);
 if(HI)L.push("Highlights are clipping, so bright areas lose detail.");
 $("ls").innerHTML=L.map(x=>`<li>${x}</li>`).join("");
 if(CHL>=0){LC=CH[CHL][4].map(([l,fn])=>[l,!!fn(c)]);$("cl").innerHTML=LC.map(([l,k])=>`<li class="${k?"":"u"}">${l}</li>`).join("");$("cg").textContent=LC.every(r=>r[1])?"All criteria met. Press Take shot!":"Goal: "+CH[CHL][2]}}
-opts();load("portrait");
+initGear();opts();load("portrait");
 </script></body></html>
