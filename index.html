@@ -30,9 +30,9 @@ main{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;a
 #tag{position:absolute;left:8px;top:8px;background:#0009;color:#fff;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;pointer-events:none}
 #hg{position:absolute;right:8px;top:8px;width:96px;height:40px;background:#0007;border-radius:6px;pointer-events:none}
 #hud{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;padding:18px 10px 6px;font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:#fff;background:linear-gradient(transparent,#000a);text-shadow:0 1px 2px #000;pointer-events:none}
-#ts{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);background:#000c;color:#fff;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;opacity:0;transition:opacity .2s;max-width:92%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}#ts.on{opacity:1}
+#ts{z-index:4;position:absolute;left:50%;bottom:34px;transform:translateX(-50%);background:#000c;color:#fff;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;opacity:0;transition:opacity .2s;max-width:92%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}#ts.on{opacity:1}
 #msg{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;text-align:center;padding:16px;background:#101418ee;color:#fff;font-size:14px;cursor:default}
-#msg[hidden]{display:none}
+#msg[hidden]{display:none}#pv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;cursor:pointer}#pv[hidden]{display:none}.b2 .bt:not(#shot){width:46px;padding:10px 0}
 #ex{position:relative;height:8px;margin:14px 4px 2px;border-radius:4px;background:linear-gradient(90deg,#1c2a4a,#8aa0c8 50%,#fff)}
 #ex i{position:absolute;top:-4px;width:4px;height:16px;margin-left:-2px;border-radius:2px;background:#ffd43b;transition:left .2s}
 #ex::after{content:"";position:absolute;left:50%;top:-2px;height:12px;border-left:1px solid #fff9}
@@ -76,20 +76,20 @@ li.x::before{content:"!";color:var(--wn)}li.u::before{content:"○";color:var(--
 <p class="sub">Point your camera at any scene and tap the subject to focus. Use the recommended settings or change them and watch the live view respond.</p>
 <main>
 <section class="vf"><div class="cam">
-<div id="fr"><div id="stack"><canvas id="cv" width="640" height="480"></canvas><canvas id="cb" width="640" height="480"></canvas></div>
+<div id="fr"><div id="stack"><canvas id="cv" width="960" height="720"></canvas><canvas id="cb" width="960" height="720"></canvas></div>
 <div id="wb"></div><div id="bl"></div>
 <svg id="nz" aria-hidden="true"><filter id="nf" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#nf)"/></svg>
-<div id="gr"></div><div id="fb"></div><div id="tag"></div><canvas id="hg" width="96" height="40"></canvas><div id="fl"></div><div id="ts"></div>
+<div id="gr"></div><div id="fb"></div><div id="tag"></div><canvas id="hg" width="96" height="40"></canvas><div id="fl"></div><div id="ts"></div><img id="pv" alt="Captured shot" hidden>
 <div id="hud"><span id="h1"></span><span id="h2"></span></div>
-<div id="msg"><div id="mm">Your camera stays on your device. Nothing is uploaded.</div><button class="bt p" id="go">Start camera</button><button class="bt" id="pic">Take or choose a photo</button><button class="bt" id="lnk" hidden>Open in full page</button></div></div>
+<div id="msg"><div id="mm">Your camera stays on your device. Nothing is uploaded.</div><button class="bt p" id="go">Start camera</button><button class="bt" id="pic">Choose from gallery</button><button class="bt" id="pic2">Take a photo with camera app</button><button class="bt" id="lnk" hidden>Open in full page</button></div></div>
 <div id="ex"><i></i></div><div class="row"><span>under</span><b id="exl"></b><span>over</span></div>
-<div class="b2"><button class="bt p" id="shot">📷 Take shot</button><button class="bt" id="flip" title="Switch camera" aria-label="Switch camera">🔄</button></div>
+<div class="b2"><button class="bt p" id="shot">📷 Take shot</button><button class="bt" id="live" title="Live camera" aria-label="Live camera">📹</button><button class="bt" id="flip" title="Switch camera" aria-label="Switch camera">🔄</button><button class="bt" id="gal" title="Photo from gallery" aria-label="Photo from gallery">🖼️</button></div>
 </div></section>
 <section>
 <div class="cd"><div class="md" id="md"></div><ul id="tp"></ul><button class="bt" id="hn" hidden></button></div>
 <div class="cd"><b>Lighting</b><div class="md" id="lt"></div><p class="hint" id="ltd"></p></div>
 <div class="cd"><div class="md" id="em"></div><p class="hint" id="emd"></p></div>
-<div class="cd" id="sls"><div class="tg"><label><input type="checkbox" id="tri"> Tripod</label><label><input type="checkbox" id="gd"> Grid</label><label>Focus mode <select id="fm"><option value="0">Single (AF-S)</option><option value="1">Continuous (AF-C)</option></select></label></div></div>
+<div class="cd" id="sls"><div class="tg"><label><input type="checkbox" id="tri"> Tripod</label><label><input type="checkbox" id="gd"> Grid</label><label><input type="checkbox" id="spt" checked> Meter at focus point</label><label><input type="checkbox" id="fit" checked> Auto-fit on tap</label><label>Focus mode <select id="fm"><option value="0">Single (AF-S)</option><option value="1">Continuous (AF-C)</option></select></label></div></div>
 <div class="cd"><div id="sc"></div><ul id="co"></ul></div>
 <div class="cd"><b>What your settings are doing</b><ul id="ls"></ul></div>
 <div class="cd"><b>Challenges</b><span id="cn" style="color:var(--mu);margin-left:8px;font-size:13px"></span><select id="chs"></select><p class="hint" id="cg"></p><ul id="cl"></ul></div>
@@ -98,7 +98,7 @@ li.x::before{content:"!";color:var(--wn)}li.u::before{content:"○";color:var(--
 <p class="sub">Camera needs permission and a secure page. Save this page (Ctrl/Cmd + S) to use it offline.</p>
 </section>
 </main></div>
-<input type="file" id="fi" accept="image/*" capture="environment" hidden>
+<input type="file" id="fg" accept="image/*" hidden><input type="file" id="fc" accept="image/*" capture="environment" hidden>
 <script>
 const $=i=>document.getElementById(i),cl=(v,a,b)=>Math.min(b,Math.max(a,v)),L2=Math.log2;
 const AP=Array.from({length:25},(_,i)=>1.4*2**(i/6)),SH=Array.from({length:52},(_,j)=>2**(j/3)/4000),IS=Array.from({length:22},(_,k)=>100*2**(k/3));
@@ -117,49 +117,51 @@ macro:{n:"Macro",e:"🌸",N:6.3,f:100,tm:1/125,ic:9,tp:1,t:["Close-ups have razo
 street:{n:"Street",e:"🚶",N:5.6,f:35,tm:1/250,ic:15,t:["1/250 s freezes walking pedestrians.","A 35 mm lens keeps you close to the action.","Pre-focus on a spot and wait for people to step into it."],ck:(N,t)=>t>1/125?"Walkers will blur. Use 1/250 s or faster.":"",ok:"Walkers are crisp."},
 astro:{n:"Astro",e:"🌌",N:2.8,f:24,tf:15,ic:21,hi:21,t:["Open the aperture wide and use a tripod.","Stay under about 20 s so stars stay dots, not trails.","High ISO is expected here."],ck:(N,t)=>t>20?"Stars will trail. Keep the shutter near 15 s.":N>4?"Open the aperture to f/2.8 or wider to gather light.":"",ok:"Stars are sharp points."},
 wildlife:{n:"Wildlife",e:"🦅",N:5.6,f:200,tm:1/1000,ic:18,fm:1,t:["A long lens fills the frame from a safe distance.","1/1000 s or faster freezes wings and movement.","Continuous AF (AF-C) tracks a moving animal."],ck:(N,t)=>t>1/800?"The animal will blur. Use 1/1000 s or faster.":"",ok:"The animal is sharp."}};
-const SL=[["a","Aperture","depth of field",0,24,v=>fA(AP[v]),"Exposure"],["s","Shutter speed","motion and light",0,51,v=>fS(SH[v])],["i","ISO","grain and light",0,21,v=>fI(v)],["c","Exposure comp","bias the camera’s choice",-9,9,ev3],["f","Zoom (focal length)","framing",24,200,v=>v+" mm","Lens and focus"],["d","Subject distance","blur strength",0,100,v=>fmD(DM(v))],["k","White balance","colour temperature",2500,9000,v=>v+" K","Colour and light"],["l","Light adjust","fine-tune scene brightness",-9,9,ev3]];
+const SL=[["a","Aperture","depth of field",0,24,v=>fA(AP[v]),"Exposure"],["s","Shutter speed","motion and light",0,51,v=>fS(SH[v])],["i","ISO","grain and light",0,21,v=>fI(v)],["c","Exposure comp","bias the camera’s choice",-9,9,ev3],["f","Zoom (focal length)","digital crop, long zooms look soft",24,200,v=>v+" mm","Lens and focus"],["d","Subject distance","blur strength",0,100,v=>fmD(DM(v))],["k","White balance","colour temperature",2500,9000,v=>v+" K","Colour and light"],["l","Light adjust","fine-tune scene brightness",-9,9,ev3]];
 const EM={M:["M","Manual","You set aperture, shutter and ISO."],A:["A","Aperture priority","You set aperture and ISO. The camera picks the shutter."],S:["S","Shutter priority","You set shutter and ISO. The camera picks the aperture."],P:["Auto","Auto","The camera chooses everything. Convenient, but it can’t know your creative intent."]};
-let M,P,S=null,EF,CHL=-1,LC=[],AUTOEV=null,SRC=null,TRK=null,FM="environment",A=1,ZM=1,BL=0,R0=100,CUR={o:0,ii:0,ev:12},PY=null,MO=0,HI=0,FACE=0,FD,hc=0,LB=null;
+let M,P,S=null,EF,CHL=-1,LC=[],AUTOEV=null,SRC=null,TRK=null,FM="environment",A=1,ZM=1,BL=0,R0=100,CUR={o:0,ii:0,ev:12},PY=null,MO=0,HI=0,FACE=0,FD,hc=0,LB=null,PM="",SPOT=0,SM=0,YR=null,LFE=12,SPOTON=true,FIT=true;
 const evs=()=>{const l=LT[S?S.lt|0:0];return(l[1]??(AUTOEV??12))+(S?S.l/3:0)};
-function rec(m){const p=MD[m],ev=evs();let N=p.N,i=0,t;
+const evm=()=>evs()+(S&&SPOTON?SPOT:0);
+function rec(m,fl){const p=MD[m],ev=evm(),f=fl||p.f;let N=p.N,i=0,t;
 if(p.tf){i=cl(Math.round(3*(L2(N*N/p.tf)-ev)),0,p.ic);t=N*N/2**(ev+i/3)}
 else{for(;i<p.ic;i++){t=N*N/2**(ev+i/3);if(t<=p.tm)break}t=N*N/2**(ev+i/3);if(t>p.tm&&p.tp){i=0;t=N*N/2**ev}}
 if(t<1/4000){t=1/4000;N=Math.sqrt(t*2**(ev+i/3))}
-t=Math.min(t,30);return{a:ia(N),s:is(t),i,f:p.f,tri:t>1/(p.f*1.2)?1:0,fm:p.fm|0}}
+t=Math.min(t,30);return{a:ia(N),s:is(t),i,f:p.f,tri:t>1/(f*1.2)?1:0,fm:p.fm|0}}
 /* camera */
 const V=document.createElement("video");V.muted=true;V.playsInline=true;V.setAttribute("playsinline","");V.setAttribute("muted","");V.style.cssText="position:fixed;left:0;top:0;width:2px;height:2px;opacity:.01;pointer-events:none";document.body.appendChild(V);
 async function startCam(){const m=$("msg");$("go").textContent="Starting…";try{if(!navigator.mediaDevices)throw Error("This page can’t open the camera.");if(V.srcObject)V.srcObject.getTracks().forEach(t=>t.stop());
-let s;try{s=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:FM},width:{ideal:1280},height:{ideal:720}},audio:false})}catch(e1){if(e1&&e1.name=="NotAllowedError")throw e1;s=await navigator.mediaDevices.getUserMedia({video:true,audio:false})}
+let s;try{s=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:FM},width:{ideal:1920},height:{ideal:1080}},audio:false})}catch(e1){if(e1&&e1.name=="NotAllowedError")throw e1;s=await navigator.mediaDevices.getUserMedia({video:true,audio:false})}
 V.srcObject=s;V.play().catch(()=>{});
 for(let i=0;i<50&&!V.videoWidth;i++)await new Promise(r=>setTimeout(r,100));
 if(!V.videoWidth)throw Error("The camera opened but sent no video. Close other apps that use the camera and try again.");
-TRK=s.getVideoTracks()[0];SRC=V;PY=null;m.hidden=true}
+TRK=s.getVideoTracks()[0];SRC=V;PY=null;try{TRK.applyConstraints({advanced:[{focusMode:"continuous"}]}).catch(()=>{})}catch(x){}m.hidden=true}
 catch(e){let pp;try{pp=(document.permissionsPolicy||document.featurePolicy).allowsFeature("camera")}catch(x){}
 const fr=window.top!==window,d=document.createElement("div"),g=document.createElement("small");
 d.textContent=pp===false?"This preview frame doesn’t allow camera access, even with permission granted. Open the page in its own browser tab, or take a photo instead.":(e&&e.name=="NotAllowedError"?"The browser or app blocked the camera. Allow camera access for this site (or for your browser in system settings), then try again.":"Couldn’t start the camera. "+(e&&e.message||""));
 g.style.opacity=.7;g.textContent=`Details: ${e&&e.name||"error"}; secure page: ${isSecureContext}; in frame: ${fr}; frame allows camera: ${pp===undefined?"unknown":pp}`;
 $("mm").textContent="";$("mm").append(d,g);$("lnk").hidden=!(fr&&/^https?:/.test(location.href));m.hidden=false}finally{$("go").textContent="Start camera"}}
-$("go").onclick=startCam;$("pic").onclick=()=>$("fi").click();$("lnk").onclick=()=>{try{window.open(location.href,"_blank")}catch(e){}try{navigator.clipboard.writeText(location.href)}catch(e){}};
-$("fi").onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();im.onload=()=>{SRC=im;TRK=null;PY=null;$("msg").hidden=true};im.src=URL.createObjectURL(f)};
-$("flip").onclick=()=>{FM=FM=="user"?"environment":"user";if(SRC===V)startCam()};
+$("go").onclick=startCam;$("pic").onclick=$("gal").onclick=()=>$("fg").click();$("pic2").onclick=()=>$("fc").click();$("live").onclick=startCam;$("lnk").onclick=()=>{try{window.open(location.href,"_blank")}catch(e){}try{navigator.clipboard.writeText(location.href)}catch(e){}};
+function pick(e){const f=e.target.files[0];e.target.value="";if(!f)return;const im=new Image();im.onload=()=>{if(V.srcObject)V.srcObject.getTracks().forEach(t=>t.stop());V.srcObject=null;SRC=im;TRK=null;AUTOEV=null;PY=null;$("msg").hidden=true;toast("Photo loaded. Tap the subject to focus.");if(S)draw()};im.src=URL.createObjectURL(f)}
+$("fg").onchange=$("fc").onchange=pick;
+$("flip").onclick=()=>{FM=FM=="user"?"environment":"user";startCam()};
 const cv=$("cv"),cx=cv.getContext("2d"),cb=$("cb"),cbx=cb.getContext("2d");
 function frame(){requestAnimationFrame(frame);if(!SRC)return;const w=SRC.videoWidth||SRC.naturalWidth,h=SRC.videoHeight||SRC.naturalHeight;if(!w)return;
 let sw=w/ZM,sh=h/ZM;if(sw/sh>4/3)sw=sh*4/3;else sh=sw*3/4;
-cx.globalAlpha=SRC===V?A:1;cx.drawImage(SRC,(w-sw)/2,(h-sh)/2,sw,sh,0,0,640,480);if(BL>.6)cbx.drawImage(cv,0,0)}
+cx.imageSmoothingQuality="high";cx.globalAlpha=SRC===V?A:1;cx.drawImage(SRC,(w-sw)/2,(h-sh)/2,sw,sh,0,0,960,720);if(BL>.6)cbx.drawImage(cv,0,0)}
 requestAnimationFrame(frame);
-setInterval(()=>{if(TRK){try{const s=TRK.getSettings();if(s.exposureTime&&s.iso){const e=L2(1.8*1.8/(s.exposureTime*1e-4))-L2(s.iso/100);if(AUTOEV==null||Math.abs(e-AUTOEV)>.2){AUTOEV=e;if(S&&!S.lt)draw()}}}catch(x){}}},700);
+setInterval(()=>{if(TRK){try{const s=TRK.getSettings();if(s.exposureTime&&s.iso){const e=L2(1.8*1.8/(s.exposureTime*1e-4))-L2(s.iso/100);if(AUTOEV==null||Math.abs(e-AUTOEV)>.2){AUTOEV=e;if(S&&!S.lt){if(FIT&&S.md=="M"&&Math.abs(evm()-LFE)>1)fitNow();else draw()}}}}catch(x){}}},700);
 /* live histogram + scene hints */
 const tc=document.createElement("canvas");tc.width=64;tc.height=48;const tx=tc.getContext("2d",{willReadFrequently:true});
 setInterval(()=>{if(!SRC||!S)return;tx.drawImage(cv,0,0,64,48);const d=tx.getImageData(0,0,64,48).data,Y=new Float32Array(3072),B=new Array(48).fill(0),g=2**CUR.o,ns=CUR.ii/21*.1;let mo=0;
 for(let i=0;i<3072;i++){const y=(d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11)/255;Y[i]=y;if(PY)mo+=Math.abs(y-PY[i]);B[Math.min(47,cl(Math.pow(Math.pow(y,2.2)*g,1/2.2)+(Math.random()-.5)*ns,0,1)*48|0)]++}
-MO=PY?MO*.8+mo/3072*20:0;PY=Y;const gx=$("hg").getContext("2d"),tot=3072,mx=Math.max(1,...B.slice(1,47))*1.15;
+MO=PY?MO*.8+mo/3072*20:0;PY=Y;YR=Y;if(SPOTON){SM=SM*.7+spotNow()*.3;const v=Math.round(SM*3)/3;if(Math.abs(v-SPOT)>=.34){SPOT=v;draw()}}const gx=$("hg").getContext("2d"),tot=3072,mx=Math.max(1,...B.slice(1,47))*1.15;
 gx.clearRect(0,0,96,40);B.forEach((v,i)=>{const h=Math.min(1,v/mx)*36;gx.fillStyle=(i==0||i==47)&&v/tot>.05?"#ff6b5b":"#e8eaee";gx.fillRect(i*2,40-h,2,h)});HI=B[47]/tot>.05;hints()},140);
 function hints(){if(++hc%7)return;const s=FACE?"portrait":MO>14?"sports":CUR.ev<=4?"night":null,b=$("hn");b.hidden=!s||s==M;if(s){b.textContent=`Looks like ${MD[s].e} ${MD[s].n}. Tap to use it`;b.dataset.m=s}
 if(window.FaceDetector&&SRC===V&&FD!==0){try{FD=FD||new FaceDetector({fastMode:true});FD.detect(cv).then(r=>FACE=r.length>0).catch(()=>FD=0)}catch(e){FD=0}}}
 $("hn").onclick=e=>load(e.target.dataset.m);
 /* state to visuals */
 function draw(){
-const md=S.md,f=S.f,EV=evs(),T=EV-(md=="A"||md=="S"?S.c/3:0);
+const md=S.md,f=S.f,EV=evs(),EVm=evm(),T=EVm-(md=="A"||md=="S"?S.c/3:0);
 let N=AP[S.a],t=SH[S.s],ii=S.i,iso;
 if(md=="A")t=cl(N*N/2**(T+ii/3),1/4000,30);
 else if(md=="S")N=cl(Math.sqrt(t*2**(T+ii/3)),1.4,22.4);
@@ -169,23 +171,23 @@ r=r||[1.4,1.96/2**(T+7),21];
 if(r[1]<1/4000){r[1]=1/4000;r[0]=cl(Math.sqrt(2**(T+r[2]/3)/4000),1.4,22.4)}
 N=r[0];t=cl(r[1],1/4000,30);ii=r[2];S.af=1;S.fm=P.fm|0}
 iso=fI(ii);
-const E={a:ia(N),s:is(t),i:ii},o=EV-(L2(N*N/t)-ii/3);
-CUR={o,ii,ev:EV};ZM=Math.max(1,f/26);A=t>1/30?cl(.033/t,.08,1):1;
+const E={a:ia(N),s:is(t),i:ii},sv=L2(N*N/t)-ii/3,o=EVm-sv,oi=EV-sv;
+CUR={o:oi,ii,ev:EV};ZM=cl(f/50,1,2.5);A=t>1/30?cl(.033/t,.08,1):1;
 const m=cl(Math.pow(f/60,.6),.7,2.2),ds=Math.pow(3/DM(S.d),.7),sh=S.tri?0:cl(L2(t*f)*1.4,0,8);
-BL=cl(11*Math.pow(m,1.5)/N*cl(ds,.4,2.5),0,16);R0=cl(12+N*4.5,12,100);
+BL=cl(8*Math.pow(m,1.5)/N*cl(ds,.4,2.2),0,12);R0=cl(20+N*5,20,100);
 cb.style.opacity=BL>.6?1:0;cb.style.filter=`blur(${BL}px)`;
-const mk=`radial-gradient(circle at ${S.px}% ${S.py}%,transparent ${R0}%,#000 ${R0+30}%)`;cb.style.maskImage=cb.style.webkitMaskImage=mk;
-$("stack").style.filter=`brightness(${cl(Math.pow(2,o*.55),.08,3.2)}) blur(${sh}px)`;
-$("bl").style.opacity=cl((o-1.2)/4,0,.85);
+const mk=`radial-gradient(circle at ${S.px}% ${S.py}%,transparent ${R0}%,#000 ${R0+35}%)`;cb.style.maskImage=cb.style.webkitMaskImage=mk;
+$("stack").style.filter=`brightness(${cl(Math.pow(2,oi*.55),.08,3.2)}) blur(${sh}px)`;
+$("bl").style.opacity=cl((oi-1.2)/4,0,.85);
 const kb=LT[S.lt][2],d=cl((S.k-kb)/3000,-1,1),w=$("wb");w.style.background=d>0?"#ff8a1e":"#2f7bff";w.style.opacity=Math.abs(d)*.6;
-$("nz").style.opacity=cl(ii/21*.85+Math.max(0,-o)*.05,0,.9);
+$("nz").style.opacity=cl(ii/21*.85+Math.max(0,-oi)*.05,0,.9);
 const lock={a:md=="S"||md=="P",s:md=="A"||md=="P",i:md=="P",c:md=="M"||md=="P"};
 SL.forEach(([k,,,,,fm])=>{const e=$("r"+k),v=lock[k]&&E[k]!=null?E[k]:S[k];e.disabled=!!lock[k];e.value=v;$("v"+k).textContent=fm(v)});
 $("fm").value=S.fm;$("fm").disabled=md=="P";$("tri").checked=!!S.tri;$("emd").textContent=EM[md][2];
 document.querySelectorAll("#em button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.e==md));
 document.querySelectorAll("#lt button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.i==S.lt));
-$("ltd").textContent=S.lt?`Assuming about EV ${LT[S.lt][1]}.`:AUTOEV!=null?`Your camera reports about EV ${AUTOEV.toFixed(1)}.`:"This camera shares no light data, so Auto assumes EV 12. Pick the lighting that matches your scene.";
-$("tag").textContent=P.e+" "+P.n+"  "+(md=="P"?"Auto":md);$("h1").textContent=`${fA(AP[E.a])}  ${fS(SH[E.s])}`;$("h2").textContent=`ISO ${iso}  ${f}mm  ${S.k}K`;
+$("ltd").textContent=(S.lt?`Assuming about EV ${LT[S.lt][1]}.`:AUTOEV!=null?`Your camera reports about EV ${AUTOEV.toFixed(1)}.`:"This camera shares no light data, so Auto assumes EV 12. Pick the lighting that matches your scene.")+(SPOTON?` The focus point reads ${SPOT>0?"+":""}${SPOT.toFixed(1)} EV against the frame average.`:"");
+$("tag").textContent=P.e+" "+P.n+"  "+(md=="P"?"Auto":md)+(SRC===V?" · Live":SRC?" · Photo":"");$("h1").textContent=`${fA(AP[E.a])}  ${fS(SH[E.s])}`;$("h2").textContent=`ISO ${iso}  ${f}mm  ${S.k}K`;
 const r=Math.round(o*10)/10;$("ex").firstChild.style.left=(cl(o,-3,3)+3)/6*100+"%";$("exl").textContent=(r>0?"+":"")+r.toFixed(1)+" EV";
 const wr=[],ok=[];
 if(o>.6)wr.push(`Too bright by ${o.toFixed(1)} EV. Close the aperture, speed up the shutter or lower ISO.`);else if(o<-.6)wr.push(`Too dark by ${(-o).toFixed(1)} EV. Open the aperture, slow the shutter or raise ISO.`);else ok.push("Exposure is on target.");
@@ -214,10 +216,16 @@ SL.forEach(([k])=>$("r"+k).oninput=e=>{S[k]=+e.target.value;draw()});
 $("tri").onchange=e=>{S.tri=e.target.checked?1:0;draw()};
 $("fm").onchange=e=>{S.fm=+e.target.value;draw()};
 $("gd").onchange=e=>$("fr").classList.toggle("g",e.target.checked);
+$("spt").onchange=e=>{SPOTON=e.target.checked;if(!SPOTON)SPOT=0;draw()};$("fit").onchange=e=>FIT=e.target.checked;$("pv").onclick=e=>{e.stopPropagation();$("pv").hidden=true};
 $("rset").onclick=()=>load(M);
 $("cp").onclick=async e=>{const b=e.target,x=`${P.n} | ${fA(AP[EF.a])} | ${fS(SH[EF.s])} | ISO ${fI(EF.i)} | ${S.f}mm | WB ${S.k}K | ${S.fm?"AF-C":"AF-S"}`+(S.tri?" | tripod":"");let r="Copied";try{await navigator.clipboard.writeText(x)}catch(_){r="Copy blocked by browser"}b.textContent=r;setTimeout(()=>b.textContent="Copy my settings",1800)};
-$("fr").onclick=e=>{if(e.target.closest("#msg"))return;if(S.md=="P")return toast("Auto picks the focus for you");const r=$("fr").getBoundingClientRect();S.px=(e.clientX-r.left)/r.width*100;S.py=(e.clientY-r.top)/r.height*100;S.af=1;
-try{TRK&&TRK.applyConstraints({advanced:[{focusMode:"single-shot",pointsOfInterest:[{x:S.px/100,y:S.py/100}]}]}).catch(()=>{})}catch(x){}draw()};
+$("fr").onclick=e=>{if(e.target.closest("#msg"))return;const r=$("fr").getBoundingClientRect();S.px=(e.clientX-r.left)/r.width*100;S.py=(e.clientY-r.top)/r.height*100;S.af=1;
+try{TRK&&TRK.applyConstraints({advanced:[{focusMode:"single-shot",pointsOfInterest:[{x:S.px/100,y:S.py/100}]}]}).catch(()=>{})}catch(x){}if(SPOTON){SM=spotNow();SPOT=Math.round(SM*3)/3}if(FIT&&S.md=="M")fitNow();else draw()};
+function fitNow(){const r=rec(M,S.f);S.a=r.a;S.s=r.s;S.i=r.i;S.tri=r.tri;LFE=evm();draw();toast(`Fitted to focus point: ${fA(AP[r.a])}  ${fS(SH[r.s])}  ISO ${fI(r.i)}`)}
+function spotNow(){if(!YR||!S)return 0;const x0=Math.round(S.px/100*63),y0=Math.round(S.py/100*47);let a=0,n=0,g=0;
+for(let i=0;i<3072;i++)g+=Math.pow(YR[i],2.2);g/=3072;
+for(let y=-4;y<=4;y++)for(let x=-4;x<=4;x++){const X=x0+x,Y=y0+y;if(X>=0&&X<64&&Y>=0&&Y<48){a+=Math.pow(YR[Y*64+X],2.2);n++}}
+return cl(L2((a/n+.003)/(g+.003)),-4,4)}
 function toast(t){const e=$("ts");e.textContent=t;e.classList.add("on");clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove("on"),2600)}
 /* challenges */
 const ex=c=>Math.abs(c.o)<=.7,af=c=>c.af;
@@ -234,20 +242,29 @@ function opts(){const v=$("chs").value||"-1";$("chs").innerHTML='<option value="
 function startCh(i){const c=CH[i];load(c[1]);CHL=i;S.lt=c[3];Object.assign(S,{a:12,s:18,i:6,f:50,fm:0,tri:0,af:0,l:0,k:LT[c[3]][2]});$("chs").value=i;draw()}
 $("chs").onchange=e=>+e.target.value<0?load(M):startCh(+e.target.value);
 /* take shot */
-function snap(){const W=640,H=480,o=document.createElement("canvas");o.width=W;o.height=H;const x=o.getContext("2d");x.drawImage(cv,0,0);
-if(BL>.6){const k=1+BL,s=document.createElement("canvas");s.width=W/k|0;s.height=H/k|0;s.getContext("2d").drawImage(cv,0,0,s.width,s.height);
-const m=document.createElement("canvas");m.width=W;m.height=H;const mx=m.getContext("2d");mx.drawImage(s,0,0,W,H);
-const px=S.px/100*W,py=S.py/100*H,fc=Math.max(Math.hypot(px,py),Math.hypot(W-px,py),Math.hypot(px,H-py),Math.hypot(W-px,H-py)),g=mx.createRadialGradient(px,py,R0/100*fc,px,py,(R0+30)/100*fc);
+function blurC(src,W,H,px){const c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d");
+if("filter" in g){const m=px*1.5;g.filter=`blur(${px}px)`;g.drawImage(src,-m,-m,W+2*m,H+2*m);return c}
+let f=1;while(f<1+px/1.5)f*=2;let cur=src,w=W,h=H;
+for(let k=2;k<=f;k*=2){const t=document.createElement("canvas");w=Math.max(8,w/2|0);h=Math.max(8,h/2|0);t.width=w;t.height=h;const tg=t.getContext("2d");tg.imageSmoothingQuality="high";tg.drawImage(cur,0,0,w,h);cur=t}
+g.imageSmoothingQuality="high";g.drawImage(cur,0,0,W,H);return c}
+async function grab(){if(SRC===V&&TRK&&window.ImageCapture){try{const b=await createImageBitmap(await new ImageCapture(TRK).takePhoto({fillLightMode:"off"})),va=V.videoWidth/V.videoHeight;let bw=b.width,bh=bw/va;if(bh>b.height){bh=b.height;bw=bh*va}return[b,(b.width-bw)/2,(b.height-bh)/2,bw,bh]}catch(e){}}
+return[SRC,0,0,SRC.videoWidth||SRC.naturalWidth,SRC.videoHeight||SRC.naturalHeight]}
+async function snap(){const[src,bx,by,bw,bh]=await grab();let sw=bw/ZM,sh=bh/ZM;if(sw/sh>4/3)sw=sh*4/3;else sh=sw*3/4;
+const W=Math.min(sw|0,2048),H=W*3/4|0,o=document.createElement("canvas");o.width=W;o.height=H;const x=o.getContext("2d");
+x.imageSmoothingQuality="high";x.drawImage(src,bx+(bw-sw)/2,by+(bh-sh)/2,sw,sh,0,0,W,H);
+if(BL>.6){const m=blurC(o,W,H,BL*W/$("fr").clientWidth),mx=m.getContext("2d");
+const px=S.px/100*W,py=S.py/100*H,fc=Math.max(Math.hypot(px,py),Math.hypot(W-px,py),Math.hypot(px,H-py),Math.hypot(W-px,H-py)),g=mx.createRadialGradient(px,py,R0/100*fc,px,py,(R0+35)/100*fc);
 g.addColorStop(0,"rgba(0,0,0,0)");g.addColorStop(1,"#000");mx.globalCompositeOperation="destination-in";mx.fillStyle=g;mx.fillRect(0,0,W,H);x.drawImage(m,0,0)}
-const im=x.getImageData(0,0,W,H),d=im.data,o2=CUR.o,gn=cl(Math.pow(2,o2*.55),.08,3.2),wo=cl((o2-1.2)/4,0,.85),dk=cl((S.k-LT[S.lt][2])/3000,-1,1),ns=CUR.ii/21*50;
+if(A<.9){x.globalAlpha=1-A;x.drawImage(cv,0,0,W,H);x.globalAlpha=1}
+const im=x.getImageData(0,0,W,H),d=im.data,o2=CUR.o,gn=cl(Math.pow(2,o2*.55),.08,3.2),wo=cl((o2-1.2)/4,0,.85),dk=cl((S.k-LT[S.lt][2])/3000,-1,1),ns=CUR.ii/21*40;
 for(let i=0;i<d.length;i+=4){const n=(Math.random()-.5)*ns;d[i]=cl((d[i]*(1+.25*dk)*gn+n)*(1-wo)+255*wo,0,255);d[i+1]=cl((d[i+1]*gn+n)*(1-wo)+255*wo,0,255);d[i+2]=cl((d[i+2]*(1-.25*dk)*gn+n)*(1-wo)+255*wo,0,255)}
-x.putImageData(im,0,0);o.toBlob(b=>{LB=b;$("li").src=URL.createObjectURL(b);$("lc").textContent=`${$("h1").textContent}  ${$("h2").textContent}. Press and hold the photo to save it.`;$("last").hidden=false},"image/jpeg",.92)}
+x.putImageData(im,0,0);o.toBlob(b=>{LB=b;const u=URL.createObjectURL(b);$("li").src=u;$("pv").src=u;$("pv").hidden=false;$("lc").textContent=`${$("h1").textContent}  ${$("h2").textContent}  ${W}×${H}. Press and hold the photo to save it.`;$("last").hidden=false;toast(PM+" Tap to close")},"image/jpeg",.95)}
 $("shr").onclick=async()=>{try{const f=new File([LB],"shot.jpg",{type:"image/jpeg"});if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:"My shot"});else toast("Press and hold the photo to save it")}catch(e){toast("Press and hold the photo to save it")}};
 $("shot").onclick=()=>{const f=$("fl");f.style.transition="none";f.style.opacity=.9;void f.offsetWidth;f.style.transition="opacity .4s";f.style.opacity=0;
-if(!SRC)return toast("Start the camera first");snap();
-if(CHL<0)return toast("Click! Shot score "+$("sc").firstChild.textContent);
-const bad=LC.filter(r=>!r[1]);if(bad.length)return toast("Not yet: "+bad[0][0]);
-DN.add(CHL);try{localStorage.setItem("ps_live_done",JSON.stringify([...DN]))}catch(e){}opts();toast("Challenge complete!")};
+if(!SRC)return toast("Start the camera or pick a photo first");snap().catch(()=>toast("Couldn’t save that shot. Try again."));
+if(CHL<0)return PM="Click! Shot score "+$("sc").firstChild.textContent;
+const bad=LC.filter(r=>!r[1]);if(bad.length)return PM="Not yet: "+bad[0][0];
+DN.add(CHL);try{localStorage.setItem("ps_live_done",JSON.stringify([...DN]))}catch(e){}opts();PM="Challenge complete!"};
 /* lesson + challenge checks */
 function post(c){
 const D=DM(S.d),F=c.f/1000,H=F*F/(c.N*3e-5)+F,nr=D*(H-F)/(H+D-2*F),fr=D>=H?1/0:D*(H-F)/(H-D),dof=fr==1/0?fmD(nr)+" to infinity":fmD(nr)+" to "+fmD(fr);
